@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <Reference Include="swed32">
-      <HintPath>..\swed32\swed32-master\swed32\bin\Debug\net6.0\swed32.dll</HintPath>
+      <HintPath>swed32.dll</HintPath>
     </Reference>
   </ItemGroup>
 
