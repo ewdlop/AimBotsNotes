@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="swed32">
+      <HintPath>..\swed32\swed32-master\swed32\bin\Debug\net6.0\swed32.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
