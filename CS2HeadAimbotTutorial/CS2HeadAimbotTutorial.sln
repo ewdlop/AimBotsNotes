@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CS2HeadAimbotTutorial", "CS2HeadAimbotTutorial\CS2HeadAimbotTutorial.csproj", "{C8CF1BBC-F2D0-4EA9-8B9E-17FF31386E89}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C8CF1BBC-F2D0-4EA9-8B9E-17FF31386E89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8CF1BBC-F2D0-4EA9-8B9E-17FF31386E89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8CF1BBC-F2D0-4EA9-8B9E-17FF31386E89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8CF1BBC-F2D0-4EA9-8B9E-17FF31386E89}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {218DFDDC-BB0E-41EC-82E9-E921E6F1C606}
+	EndGlobalSection
+EndGlobal
