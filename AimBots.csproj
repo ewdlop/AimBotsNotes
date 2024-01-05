@@ -5,12 +5,21 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="swed32">
-      <HintPath>swed32.dll</HintPath>
-    </Reference>
+    <Compile Remove="cs2-dumper\**" />
+    <Compile Remove="CS2Dumper\**" />
+    <EmbeddedResource Remove="cs2-dumper\**" />
+    <EmbeddedResource Remove="CS2Dumper\**" />
+    <None Remove="cs2-dumper\**" />
+    <None Remove="CS2Dumper\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClickableTransparentOverlay" Version="9.1.0" />
+    <PackageReference Include="swed64" Version="1.0.5" />
   </ItemGroup>
 
 </Project>
