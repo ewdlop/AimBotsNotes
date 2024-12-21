@@ -5,6 +5,10 @@ VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AimBots", "AimBots.csproj", "{19BE0C9D-B656-424D-AA9B-A21ED84276F1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CS2HeadAimbotTutorial", "CS2HeadAimbotTutorial\CS2HeadAimbotTutorial\CS2HeadAimbotTutorial.csproj", "{B6CDB519-4FB1-4508-A16B-A79329860CD4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlowHackTutorial", "GlowHackTutorial\GlowHackTutorial\GlowHackTutorial.csproj", "{89B29CD7-982D-483B-A74D-3E6CA1E8B3BF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{19BE0C9D-B656-424D-AA9B-A21ED84276F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19BE0C9D-B656-424D-AA9B-A21ED84276F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19BE0C9D-B656-424D-AA9B-A21ED84276F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6CDB519-4FB1-4508-A16B-A79329860CD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6CDB519-4FB1-4508-A16B-A79329860CD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6CDB519-4FB1-4508-A16B-A79329860CD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6CDB519-4FB1-4508-A16B-A79329860CD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89B29CD7-982D-483B-A74D-3E6CA1E8B3BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89B29CD7-982D-483B-A74D-3E6CA1E8B3BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89B29CD7-982D-483B-A74D-3E6CA1E8B3BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89B29CD7-982D-483B-A74D-3E6CA1E8B3BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

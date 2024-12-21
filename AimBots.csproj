@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PlatformTarget>x64</PlatformTarget>
@@ -11,14 +11,21 @@
   <ItemGroup>
     <Compile Remove="cs2-dumper\**" />
     <Compile Remove="CS2Dumper\**" />
+    <Compile Remove="CS2HeadAimbotTutorial\**" />
+    <Compile Remove="GlowHackTutorial\**" />
     <EmbeddedResource Remove="cs2-dumper\**" />
     <EmbeddedResource Remove="CS2Dumper\**" />
+    <EmbeddedResource Remove="CS2HeadAimbotTutorial\**" />
+    <EmbeddedResource Remove="GlowHackTutorial\**" />
     <None Remove="cs2-dumper\**" />
     <None Remove="CS2Dumper\**" />
+    <None Remove="CS2HeadAimbotTutorial\**" />
+    <None Remove="GlowHackTutorial\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClickableTransparentOverlay" Version="9.1.0" />
+    <PackageReference Include="ClickableTransparentOverlay" Version="11.0.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
     <PackageReference Include="swed64" Version="1.0.5" />
   </ItemGroup>
 

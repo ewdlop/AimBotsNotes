@@ -35,7 +35,7 @@ while (true) // aimbot loop
     // first entry into entity list
     IntPtr listEntry = swed.ReadPointer(entityList, 0x10); // we don't have an ID yet.
 
-    if(renderer.wallHack)
+    if (renderer.wallHack)
     {
         for (int i = 0; i < 64; i++) // 64 controllers 
         {
@@ -67,7 +67,7 @@ while (true) // aimbot loop
 
         }
     }
-    
+
     // get our player 
     localPlayer.pawnAddress = swed.ReadPointer(client, Offsets.dwLocalPlayerPawn);
     localPlayer.team = swed.ReadInt(localPlayer.pawnAddress, Offsets.m_iTeamNum);
@@ -176,4 +176,3 @@ while (true) // aimbot loop
 
 [DllImport("user32.dll")]
 static extern short GetAsyncKeyState(int vKey);
-

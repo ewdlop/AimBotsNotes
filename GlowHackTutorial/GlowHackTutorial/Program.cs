@@ -20,12 +20,12 @@ int m_flDetectedByEnemySensorTime = 0x13E4;
 while (true)
 {
     // get entity list 
-    IntPtr entityList = swed.ReadPointer(client,dwEntityList);
+    IntPtr entityList = swed.ReadPointer(client, dwEntityList);
 
     // first entry 
     IntPtr listEntry = swed.ReadPointer(entityList, 0x10);
 
-    for (int i = 0; i < 64;i++) // 64 controllers 
+    for (int i = 0; i < 64; i++) // 64 controllers 
     {
         if (listEntry == IntPtr.Zero)
             continue;
