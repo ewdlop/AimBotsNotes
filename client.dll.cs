@@ -1,3 +1,5 @@
+//https://github.com/a2x/cs2-dumper/blob/main/output/client_dll.cs
+
 /*
  * Created using https://github.com/a2x/cs2-dumper
  * Fri, 5 Jan 2024 01:00:01 +0000
