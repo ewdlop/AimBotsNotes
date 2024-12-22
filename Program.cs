@@ -5,11 +5,9 @@ using System.Runtime.InteropServices;
 
 //https://www.youtube.com/watch?v=hO1WmAO0rDA
 
-
 const string processName = "cs2";
 
 Swed swed = new Swed(processName);
-
 
 IntPtr client = swed.GetModuleBase("client.dll");
 
@@ -23,9 +21,6 @@ while(true)
 {
     swed.Hack(localPlayer, renderer, client, entities);
 }
-
-[DllImport(dllName: "user32.dll")]
-static extern short GetAsyncKeyState(int vKey);
 
 
 void loop1()
@@ -148,19 +143,74 @@ static class SwedExtensions
     {
         entities.Clear(); // clean list of old ents 
 
-        // get entity list 
         IntPtr entityList = swed.ReadPointer(client, Offsets.dwEntityList);
 
         // first entry into entity list
         IntPtr listEntry = swed.ReadPointer(entityList, 0x10); // we don't have an ID yet.
 
-        swed.WallHack(renderer, entityList, listEntry);
+        if (renderer.wallHack)
+        {
+            swed.WallHack(entityList, listEntry);
+        }
 
-        // get our player 
+        //Console.Clear();
+
+        entities = swed.GetEntities(localPlayer, entityList, listEntry, renderer);
+
+        // Aimbot stuff 
+        if (renderer.aimbot)
+        {
+            swed.AimBot(entities, localPlayer, client);
+        }
+
+
+        Thread.Sleep(14); // change depending on your need.
+    }
+
+    public static void WallHack(this Swed swed, IntPtr entityList, IntPtr listEntry)
+    {
+        for (int i = 0; i < 64; i++) // 64 controllers 
+        {
+            if (listEntry == IntPtr.Zero)
+                continue;
+
+            // get current controller 
+            IntPtr currentController = swed.ReadPointer(listEntry, i * 0x78);
+
+            if (currentController == IntPtr.Zero)
+                continue;
+
+            // get current pawn
+            int pawnHandle = swed.ReadInt(currentController, Offsets.m_hPlayerPawn);
+            if (pawnHandle == 0)
+                continue;
+
+            // second entry 
+            IntPtr listEntry2 = swed.ReadPointer(entityList, 0x8 * ((pawnHandle & 0x7FFF) >> 9) + 0x10);
+
+            IntPtr currentPawn = swed.ReadPointer(listEntry2, 0x78 * (pawnHandle & 0x1FF));
+
+            // now that we have the pawn we can force the glow 
+
+            swed.WriteFloat(currentPawn, m_flDetectedByEnemySensorTime, 86400); // for some odd reason this is the value for glow.
+
+            // write pawn so that we can see that they're there.
+            Console.WriteLine($"{i}: {currentPawn}");
+        }
+    }
+
+    public static void LocalPlayer(this Swed swed, Entity localPlayer, IntPtr client)
+    {
+        // get our player
         localPlayer.PawnAddress = swed.ReadPointer(client, Offsets.dwLocalPlayerPawn);
-        localPlayer.Team = swed.ReadInt(localPlayer.PawnAddress, Offsets.m_iTeamNum);
-        localPlayer.Origin = swed.ReadVec(localPlayer.PawnAddress, Offsets.m_vOldOrigin);
-        localPlayer.View = swed.ReadVec(localPlayer.PawnAddress, Offsets.m_vecViewOffset);
+        localPlayer.Team = swed.ReadInt(localPlayer.PawnAddress, 0x3BF); //C_BaseEntity.m_iTeamNum 
+        localPlayer.Origin = swed.ReadVec(localPlayer.PawnAddress, 0x1244); //C_BasePlayerPawn.m_vOldOrigin
+        localPlayer.View = swed.ReadVec(localPlayer.PawnAddress, 0xC48);//C_BaseModelEntity.m_vecViewOffset
+    }
+
+    public static List<Entity> GetEntities(this Swed swed, Entity localPlayer, IntPtr entityList, IntPtr listEntry, Renderer renderer)
+    {
+        List<Entity> entities = [];
 
         for (int i = 0; i < 64; i++) // 64 controllers
         {
@@ -234,56 +284,13 @@ static class SwedExtensions
             Console.ResetColor();
         }
 
-
-        // Aimbot stuff 
-        entities = [.. entities.OrderBy(o => o.Distance)];
-
-        swed.AimBot(entities, localPlayer, renderer, client);
-
-
-        Thread.Sleep(14); // change depending on your need.
-    }
-
-    public static void WallHack(this Swed swed, Renderer renderer, IntPtr entityList, IntPtr listEntry)
-    {
-        if (renderer.wallHack)
-        {
-            for (int i = 0; i < 64; i++) // 64 controllers 
-            {
-                if (listEntry == IntPtr.Zero)
-                    continue;
-
-                // get current controller 
-                IntPtr currentController = swed.ReadPointer(listEntry, i * 0x78);
-
-                if (currentController == IntPtr.Zero)
-                    continue;
-
-                // get current pawn
-                int pawnHandle = swed.ReadInt(currentController, Offsets.m_hPlayerPawn);
-                if (pawnHandle == 0)
-                    continue;
-
-                // second entry 
-                IntPtr listEntry2 = swed.ReadPointer(entityList, 0x8 * ((pawnHandle & 0x7FFF) >> 9) + 0x10);
-
-                IntPtr currentPawn = swed.ReadPointer(listEntry2, 0x78 * (pawnHandle & 0x1FF));
-
-                // now that we have the pawn we can force the glow 
-
-                swed.WriteFloat(currentPawn, m_flDetectedByEnemySensorTime, 86400); // for some odd reason this is the value for glow.
-
-                // write pawn so that we can see that they're there.
-                Console.WriteLine($"{i}: {currentPawn}");
-
-            }
-        }
+        return [.. entities.OrderBy(o => o.Distance)];
 
     }
 
-    public static void AimBot(this Swed swed, List<Entity> entities, Entity localPlayer, Renderer renderer, IntPtr client)
+    public static void AimBot(this Swed swed, List<Entity> entities, Entity localPlayer, IntPtr client)
     {
-        if (entities.Count > 0 && GetAsyncKeyState(HOTKEY) < 0 && renderer.aimbot)
+        if (entities.Count > 0 && GetAsyncKeyState(HOTKEY) < 0)
         {
             // get view values
             Vector3 playerView = Vector3.Add(localPlayer.Origin, localPlayer.View);
