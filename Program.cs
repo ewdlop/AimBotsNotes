@@ -4,10 +4,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 //https://www.youtube.com/watch?v=hO1WmAO0rDA
-//https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
 
-const int HOTKEY = 0x06; // X2 mouse button
-const int m_flDetectedByEnemySensorTime = 0x13E4; // time for some offsets
 
 const string processName = "cs2";
 
@@ -24,156 +21,13 @@ Entity localPlayer = new();
 
 while(true)
 {
-    loop();
+    swed.Hack(localPlayer, renderer, client, entities);
 }
 
-void loop()
-{
-    entities.Clear(); // clean list of old ents 
-
-    // get entity list 
-    IntPtr entityList = swed.ReadPointer(client, Offsets.dwEntityList);
-
-    // first entry into entity list
-    IntPtr listEntry = swed.ReadPointer(entityList, 0x10); // we don't have an ID yet.
-
-    if (renderer.wallHack)
-    {
-        for (int i = 0; i < 64; i++) // 64 controllers 
-        {
-            if (listEntry == IntPtr.Zero)
-                continue;
-
-            // get current controller 
-            IntPtr currentController = swed.ReadPointer(listEntry, i * 0x78);
-
-            if (currentController == IntPtr.Zero)
-                continue;
-
-            // get current pawn
-            int pawnHandle = swed.ReadInt(currentController, Offsets.m_hPlayerPawn);
-            if (pawnHandle == 0)
-                continue;
-
-            // second entry 
-            IntPtr listEntry2 = swed.ReadPointer(entityList, 0x8 * ((pawnHandle & 0x7FFF) >> 9) + 0x10);
-
-            IntPtr currentPawn = swed.ReadPointer(listEntry2, 0x78 * (pawnHandle & 0x1FF));
-
-            // now that we have the pawn we can force the glow 
-
-            swed.WriteFloat(currentPawn, m_flDetectedByEnemySensorTime, 86400); // for some odd reason this is the value for glow.
-
-            // write pawn so that we can see that they're there.
-            Console.WriteLine($"{i}: {currentPawn}");
-
-        }
-    }
-
-    // get our player 
-    localPlayer.PawnAddress = swed.ReadPointer(client, Offsets.dwLocalPlayerPawn);
-    localPlayer.Team = swed.ReadInt(localPlayer.PawnAddress, Offsets.m_iTeamNum);
-    localPlayer.Origin = swed.ReadVec(localPlayer.PawnAddress, Offsets.m_vOldOrigin);
-    localPlayer.View = swed.ReadVec(localPlayer.PawnAddress, Offsets.m_vecViewOffset);
-
-    Console.Clear();
-    entities.Clear();
-
-    for (int i = 0; i < 64; i++) // 64 controllers
-    {
-
-        if (listEntry == IntPtr.Zero) // skip if entry invalid 
-            continue;
-
-        // get current controller 
-        IntPtr currentController = swed.ReadPointer(listEntry, i * 0x78); // you might want to add a bitmask if you use higher a higher i.
-
-        if (currentController == IntPtr.Zero) // skip if controller invalid 
-            continue;
-
-        // get pawn handle 
-        int pawnHandle = swed.ReadInt(currentController, Offsets.m_hPlayerPawn);
-
-        if (pawnHandle == 0) // you get it by this point, the same.
-            continue;
-
-        // second entry, now we find the pawn! 
-        // apply bitmask 0x7FFF and shift bits by 9.
-        IntPtr listEntry2 = swed.ReadPointer(entityList, 0x8 * ((pawnHandle & 0x7FFF) >> 9) + 0x10);
-
-        // read current pawn, apply bitmask to stay inside range 
-        IntPtr currentPawn = swed.ReadPointer(listEntry2, 0x78 * (pawnHandle & 0x1FF));
+[DllImport(dllName: "user32.dll")]
+static extern short GetAsyncKeyState(int vKey);
 
 
-        if (currentPawn == localPlayer.PawnAddress)
-            continue;
-
-        // get scene node
-        IntPtr sceneNode = swed.ReadPointer(currentPawn, Offsets.m_pGameSceneNode);
-
-        // get bone array / bone matrix 
-        IntPtr boneMatrix = swed.ReadPointer(sceneNode, Offsets.m_modelState + 0x80); // 0x80 is the dwBoneMatrix offset
-
-        // get pawn attributes 
-        int health = swed.ReadInt(currentPawn, Offsets.m_iHealth);
-        int team = swed.ReadInt(currentPawn, Offsets.m_iTeamNum);
-        uint lifeState = swed.ReadUInt(currentPawn, Offsets.m_lifeState);
-
-        if (lifeState != 256)
-            continue;
-
-        if (team == localPlayer.Team && renderer.aimBotOnTeam == false)
-            continue;
-
-        Entity entity = new Entity()
-        {
-            PawnAddress = currentPawn,
-            ControllerAddress = currentController,
-            Health = health,
-            LifeState = lifeState,
-            Origin = swed.ReadVec(currentPawn, Offsets.m_vOldOrigin),
-            View = swed.ReadVec(currentPawn, Offsets.m_vecViewOffset),
-            Distance = Vector3.Distance(swed.ReadVec(currentPawn, Offsets.m_vOldOrigin), localPlayer.Origin),
-            Head = swed.ReadVec(boneMatrix, 6 * 32) // 6 = bone id, 32 = step between bone coordinates.
-        };
-        
-        entities.Add(entity);
-
-        Console.ForegroundColor = ConsoleColor.Green; // Set text color to green
-
-        if (team != localPlayer.Team)
-        {
-            Console.ForegroundColor = ConsoleColor.Red; // Set text color to red
-        }
-        Console.WriteLine($"{entity.Health}hp, head coordinate {entity.Head}");
-
-        // Reset text color to the default after printing
-        Console.ResetColor();
-    }
-
-    // Aimbot stuff 
-
-    entities = [.. entities.OrderBy(o => o.Distance)];
-
-
-    if (entities.Count > 0 && GetAsyncKeyState(HOTKEY) < 0 && renderer.aimbot)
-    {
-        // get view values
-        Vector3 playerView = Vector3.Add(localPlayer.Origin, localPlayer.View);
-        Vector3 entityView = Vector3.Add(entities[0].Origin, entities[0].View);
-
-
-        // get angles 
-        Vector2 newAngles = Math2.CalculateAngles(playerView, entities[0].Head);
-        Vector3 newAnglesVec3 = new Vector3(newAngles.Y, newAngles.X, 0.0f);
-
-        // set angles 
-        swed.WriteVec(client, Offsets.dwViewAngles, newAnglesVec3);
-
-    }
-
-    Thread.Sleep(14); // change depending on your need.
-}
 void loop1()
 {
     while (true)
@@ -279,5 +133,170 @@ void loop1()
     }
 }
 
-[DllImport("user32.dll")]
-static extern short GetAsyncKeyState(int vKey);
+
+static class SwedExtensions
+{
+    //https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+
+    const int HOTKEY = 0x06; // X2 mouse button
+    const int m_flDetectedByEnemySensorTime = 0x13E4; // time for some offsets
+
+    [DllImport(dllName: "user32.dll")]
+    public static extern short GetAsyncKeyState(int vKey);
+
+    public static void Hack(this Swed swed, Entity localPlayer, Renderer renderer, IntPtr client, List<Entity> entities)
+    {
+        entities.Clear(); // clean list of old ents 
+
+        // get entity list 
+        IntPtr entityList = swed.ReadPointer(client, Offsets.dwEntityList);
+
+        // first entry into entity list
+        IntPtr listEntry = swed.ReadPointer(entityList, 0x10); // we don't have an ID yet.
+
+        swed.WallHack(renderer, entityList, listEntry);
+
+        // get our player 
+        localPlayer.PawnAddress = swed.ReadPointer(client, Offsets.dwLocalPlayerPawn);
+        localPlayer.Team = swed.ReadInt(localPlayer.PawnAddress, Offsets.m_iTeamNum);
+        localPlayer.Origin = swed.ReadVec(localPlayer.PawnAddress, Offsets.m_vOldOrigin);
+        localPlayer.View = swed.ReadVec(localPlayer.PawnAddress, Offsets.m_vecViewOffset);
+
+        for (int i = 0; i < 64; i++) // 64 controllers
+        {
+
+            if (listEntry == IntPtr.Zero) // skip if entry invalid 
+                continue;
+
+            // get current controller 
+            IntPtr currentController = swed.ReadPointer(listEntry, i * 0x78); // you might want to add a bitmask if you use higher a higher i.
+
+            if (currentController == IntPtr.Zero) // skip if controller invalid 
+                continue;
+
+            // get pawn handle 
+            int pawnHandle = swed.ReadInt(currentController, Offsets.m_hPlayerPawn);
+
+            if (pawnHandle == 0) // you get it by this point, the same.
+                continue;
+
+            // second entry, now we find the pawn! 
+            // apply bitmask 0x7FFF and shift bits by 9.
+            IntPtr listEntry2 = swed.ReadPointer(entityList, 0x8 * ((pawnHandle & 0x7FFF) >> 9) + 0x10);
+
+            // read current pawn, apply bitmask to stay inside range 
+            IntPtr currentPawn = swed.ReadPointer(listEntry2, 0x78 * (pawnHandle & 0x1FF));
+
+
+            if (currentPawn == localPlayer.PawnAddress)
+                continue;
+
+            // get scene node
+            IntPtr sceneNode = swed.ReadPointer(currentPawn, Offsets.m_pGameSceneNode);
+
+            // get bone array / bone matrix 
+            IntPtr boneMatrix = swed.ReadPointer(sceneNode, Offsets.m_modelState + 0x80); // 0x80 is the dwBoneMatrix offset
+
+            // get pawn attributes 
+            int health = swed.ReadInt(currentPawn, Offsets.m_iHealth);
+            int team = swed.ReadInt(currentPawn, Offsets.m_iTeamNum);
+            uint lifeState = swed.ReadUInt(currentPawn, Offsets.m_lifeState);
+
+            if (lifeState != 256)
+                continue;
+
+            if (team == localPlayer.Team && renderer.aimBotOnTeam == false)
+                continue;
+
+            Entity entity = new Entity()
+            {
+                PawnAddress = currentPawn,
+                ControllerAddress = currentController,
+                Health = health,
+                LifeState = lifeState,
+                Origin = swed.ReadVec(currentPawn, Offsets.m_vOldOrigin),
+                View = swed.ReadVec(currentPawn, Offsets.m_vecViewOffset),
+                Distance = Vector3.Distance(swed.ReadVec(currentPawn, Offsets.m_vOldOrigin), localPlayer.Origin),
+                Head = swed.ReadVec(boneMatrix, 6 * 32) // 6 = bone id, 32 = step between bone coordinates.
+            };
+
+            entities.Add(entity);
+
+            Console.ForegroundColor = ConsoleColor.Green; // Set text color to green
+
+            if (team != localPlayer.Team)
+            {
+                Console.ForegroundColor = ConsoleColor.Red; // Set text color to red
+            }
+            Console.WriteLine($"{entity.Health}hp, head coordinate {entity.Head}");
+
+            // Reset text color to the default after printing
+            Console.ResetColor();
+        }
+
+
+        // Aimbot stuff 
+        entities = [.. entities.OrderBy(o => o.Distance)];
+
+        swed.AimBot(entities, localPlayer, renderer, client);
+
+
+        Thread.Sleep(14); // change depending on your need.
+    }
+
+    public static void WallHack(this Swed swed, Renderer renderer, IntPtr entityList, IntPtr listEntry)
+    {
+        if (renderer.wallHack)
+        {
+            for (int i = 0; i < 64; i++) // 64 controllers 
+            {
+                if (listEntry == IntPtr.Zero)
+                    continue;
+
+                // get current controller 
+                IntPtr currentController = swed.ReadPointer(listEntry, i * 0x78);
+
+                if (currentController == IntPtr.Zero)
+                    continue;
+
+                // get current pawn
+                int pawnHandle = swed.ReadInt(currentController, Offsets.m_hPlayerPawn);
+                if (pawnHandle == 0)
+                    continue;
+
+                // second entry 
+                IntPtr listEntry2 = swed.ReadPointer(entityList, 0x8 * ((pawnHandle & 0x7FFF) >> 9) + 0x10);
+
+                IntPtr currentPawn = swed.ReadPointer(listEntry2, 0x78 * (pawnHandle & 0x1FF));
+
+                // now that we have the pawn we can force the glow 
+
+                swed.WriteFloat(currentPawn, m_flDetectedByEnemySensorTime, 86400); // for some odd reason this is the value for glow.
+
+                // write pawn so that we can see that they're there.
+                Console.WriteLine($"{i}: {currentPawn}");
+
+            }
+        }
+
+    }
+
+    public static void AimBot(this Swed swed, List<Entity> entities, Entity localPlayer, Renderer renderer, IntPtr client)
+    {
+        if (entities.Count > 0 && GetAsyncKeyState(HOTKEY) < 0 && renderer.aimbot)
+        {
+            // get view values
+            Vector3 playerView = Vector3.Add(localPlayer.Origin, localPlayer.View);
+            Vector3 entityView = Vector3.Add(entities[0].Origin, entities[0].View);
+
+
+            // get angles 
+            Vector2 newAngles = Math2.CalculateAngles(playerView, entities[0].Head);
+            Vector3 newAnglesVec3 = new Vector3(newAngles.Y, newAngles.X, 0.0f);
+
+            // set angles 
+            swed.WriteVec(client, Offsets.dwViewAngles, newAnglesVec3);
+
+        }
+    }
+}
