@@ -155,6 +155,8 @@ static class SwedExtensions
 
         //Console.Clear();
 
+        localPlayer = swed.UpdateLocalPlayer(localPlayer, client);
+
         entities = swed.GetEntities(localPlayer, entityList, listEntry, renderer);
 
         // Aimbot stuff 
@@ -199,13 +201,17 @@ static class SwedExtensions
         }
     }
 
-    public static void LocalPlayer(this Swed swed, Entity localPlayer, IntPtr client)
+    public static Entity UpdateLocalPlayer(this Swed swed, Entity localPlayer, IntPtr client)
     {
-        // get our player
-        localPlayer.PawnAddress = swed.ReadPointer(client, Offsets.dwLocalPlayerPawn);
-        localPlayer.Team = swed.ReadInt(localPlayer.PawnAddress, 0x3BF); //C_BaseEntity.m_iTeamNum 
-        localPlayer.Origin = swed.ReadVec(localPlayer.PawnAddress, 0x1244); //C_BasePlayerPawn.m_vOldOrigin
-        localPlayer.View = swed.ReadVec(localPlayer.PawnAddress, 0xC48);//C_BaseModelEntity.m_vecViewOffset
+        IntPtr pawnAddress = swed.ReadPointer(client, Offsets.dwLocalPlayerPawn);
+        Entity newLocalPlayer = localPlayer with
+        {
+            PawnAddress = pawnAddress,
+            Team = swed.ReadInt(pawnAddress, 0x3BF), //C_BaseEntity.m_iTeamNum 
+            Origin = swed.ReadVec(pawnAddress, 0x1244), //C_BasePlayerPawn.m_vOldOrigin
+            View = swed.ReadVec(pawnAddress, 0xC48)//C_BaseModelEntity.m_vecViewOffset
+        };
+        return newLocalPlayer;
     }
 
     public static List<Entity> GetEntities(this Swed swed, Entity localPlayer, IntPtr entityList, IntPtr listEntry, Renderer renderer)

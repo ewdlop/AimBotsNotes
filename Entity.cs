@@ -2,7 +2,7 @@
 
 namespace AimBots;
 
-public class Entity
+public record Entity
 {
     public nint PawnAddress { get; set; }
     public nint ControllerAddress { get; set; }
