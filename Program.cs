@@ -19,10 +19,14 @@ IntPtr client = swed.GetModuleBase("client.dll");
 Renderer renderer = new Renderer();
 renderer.Start().Wait();
 
-List<Entity> entities = new List<Entity>();
-Entity localPlayer = new Entity();
+List<Entity> entities = [];
+Entity localPlayer = new();
 
-loop();
+while(true)
+{
+    loop();
+}
+
 void loop()
 {
     entities.Clear(); // clean list of old ents 
